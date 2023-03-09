@@ -4,6 +4,7 @@ library(tidyverse)
 
 busca_dados_cadastro <- function(ano, mes, faz_download= TRUE){
 
+  diretorio_trabalho<-  paste0("data/sevidor_siape",ano,mes)
 
   if (faz_download){
     url_base<- sprintf("https://portaldatransparencia.gov.br/download-de-dados/servidores/%s%s_Servidores_SIAPE",ano,mes)
@@ -13,13 +14,12 @@ busca_dados_cadastro <- function(ano, mes, faz_download= TRUE){
 
     download.file(url = url_base, destfile = "data/dado_servidor.zip", mode = "wb")
 
+    unzip(zipfile = "data/dado_servidor.zip",exdir = diretorio_trabalho)
 
 
   }
 
-  diretorio_trabalho<-  paste0("data/sevidor_siape",ano,mes)
 
-  unzip(zipfile = "data/dado_servidor.zip",exdir = diretorio_trabalho)
 
   arquivo_trabalho<- paste0(diretorio_trabalho,"/",ano,mes,"_Cadastro.csv")
 
