@@ -24,7 +24,7 @@ rtn_despesas_primarias_ano_anterior<-
 
 
 
-#Gera o novo rtn_dimensional_ipca para comparar as medidas com o boletim estatístico e com o PEP
+#Gera rtn_dimensional para comparar as medidas com o boletim estatístico e com o PEP
 rtn_dimensional_ano_anterior<-
   rtn_despesas_primarias_ano_anterior %>%
   filter(CATEGORIA_RTN == "II.2.1 - Pessoal e Encargos Sociais - Ativo civil") %>%

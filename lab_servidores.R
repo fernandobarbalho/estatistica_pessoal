@@ -35,6 +35,8 @@ siape_201612_Cadastro<- busca_dados_cadastro("2016","12")
 
 resumo_orgao_lotacao_2016<-
 siape_201612_Cadastro %>%
+  distinct(ORGSUP_LOTACAO,
+           Id_SERVIDOR_PORTAL) %>%
   group_by(ORGSUP_LOTACAO) %>%
   summarise(
     quantidade = n()
@@ -44,6 +46,8 @@ siape_201612_Cadastro %>%
 
 resumo_orgao_exercicio_2016<-
   siape_201612_Cadastro %>%
+  distinct(ORGSUP_EXERCICIO,
+           Id_SERVIDOR_PORTAL) %>%
   group_by(ORGSUP_EXERCICIO) %>%
   summarise(
     quantidade = n()
@@ -54,13 +58,14 @@ resumo_orgao_exercicio_2016<-
 ####Em 2016 Os dados são incompatíveis para comparação já que não retratam a estrutura de anos anteriores
 
 
-####Em janeiro de 2023 Os dados não estão batendo com os dados do BEP, nem mesmo o consolidado pelo próprio portal da transparência
-##Tambpem não está batendo o total do portal da transparência com a agregação de quantidade de servidores em órgãos superiores por órgão de lotação
+####Em janeiro de 2023 Os dados não estão batendo com os dados do BEP no agrupamento por órgão superior, nem mesmo o consolidado pelo próprio portal da transparência
 
 siape_202301_Cadastro<- busca_dados_cadastro("2023","01")
 
-resumo_orgao_lotacao_2023_01<-
+resumo_sup_orgao_lotacao_2023_01<-
   siape_202301_Cadastro %>%
+  distinct(ORGSUP_LOTACAO,
+           Id_SERVIDOR_PORTAL) %>%
   group_by(ORGSUP_LOTACAO) %>%
   summarise(
     quantidade = n()
@@ -68,8 +73,32 @@ resumo_orgao_lotacao_2023_01<-
   arrange(desc(quantidade))
 
 
-resumo_orgao_exercicio_2023_01<-
+resumo_orgao_lotacao_2023_01<-
   siape_202301_Cadastro %>%
+  distinct(ORG_LOTACAO,
+           Id_SERVIDOR_PORTAL) %>%
+  group_by(ORG_LOTACAO) %>%
+  summarise(
+    quantidade = n()
+  ) %>%
+  arrange(desc(quantidade))
+
+
+#### Identificação das situações que estão associados a registros de órgãos superiores de lotação sem informação
+
+lotacao_sup_n_informada<-
+  siape_202301_Cadastro %>%
+  filter(ORGSUP_LOTACAO == "Sem informação")
+
+
+## Após análise dos registros acima, percebi que os dados de órgão de lotação estão corretamente associados, havendo portanto problema apenas no órgão superior
+
+##Contagem de servidores ativos civis por órgão de lotação
+##Para essa contagem os valores já estão mais próximo com os dados do BEP
+resumo_sup_orgao_exercicio_2023_01<-
+  siape_202301_Cadastro %>%
+  distinct(ORGSUP_EXERCICIO,
+           Id_SERVIDOR_PORTAL) %>%
   group_by(ORGSUP_EXERCICIO) %>%
   summarise(
     quantidade = n()
@@ -77,4 +106,6 @@ resumo_orgao_exercicio_2023_01<-
   arrange(desc(quantidade))
 
 
-unique(siape_202301_Cadastro$SITUACAO_VINCULO)
+
+
+
