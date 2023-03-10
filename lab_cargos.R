@@ -32,3 +32,18 @@ busca_dados_cadastro <- function(ano, mes, faz_download= TRUE){
 
 
 Cadastro_201612<- busca_dados_cadastro("2016","12",FALSE)
+
+
+funcao_2016<-
+Cadastro_201612 %>%
+  filter(sigla_funcao != -1)%>%
+  group_by(sigla_funcao,
+           funcao) %>%
+  summarise(
+    quantidade = n()
+  )
+
+
+####Os dados de função da tabela de cadastro aproximam-se dos dados do BEP
+####Os dados do PEP batem com os dados do BEP
+

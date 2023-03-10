@@ -24,9 +24,9 @@ busca_dados_cadastro <- function(ano, mes, faz_download= TRUE){
   arquivo_trabalho<- paste0(diretorio_trabalho,"/",ano,mes,"_Cadastro.csv")
 
   library(readr)
-  read_delim(arquivo_trabalho,
-                                      delim = ";", escape_double = FALSE, locale = locale(encoding = "LATIN1"),
-                                      trim_ws = TRUE)
+  janitor::clean_names(read_delim(arquivo_trabalho,
+                                  delim = ";", escape_double = FALSE, locale = locale(encoding = "LATIN1"),
+                                  trim_ws = TRUE))
 
 }
 
