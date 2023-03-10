@@ -1,4 +1,5 @@
 library(tidyverse)
+library(colorspace)
 
 ###### Laboratório para análises de dados de servidores públicos (tabela de remuneração)
 
@@ -71,6 +72,79 @@ median(teste_affc$remuneracao_basica_bruta_r)
 
 glimpse(join_tabelas)
 
+join_tabelas %>%
+  filter(descricao_cargo == "AUDITOR FEDERAL DE FINANCAS E CONTROLE") %>%
+  mutate(posicao_carreira = str_c(classe_cargo,"-",padrao_cargo)) %>%
+  group_by(posicao_carreira) %>%
+  summarise(
+    quantidade = n()
+  ) %>%
+  ungroup() %>%
+  mutate(posicao_carreira = reorder(posicao_carreira, quantidade)) %>%
+  ggplot(aes(x=quantidade, y=posicao_carreira, fill= quantidade )) +
+  geom_col() +
+  scale_fill_continuous_sequential(palette = "OrYel") +
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "#575756"),
+    panel.grid = element_blank(),
+    legend.position = "right"
+  ) +
+  labs(
+    title= "AFFC - Ranking das classes (quantidade)",
+    fill = "Quantidade",
+    x="",
+    y=""
+  )
+
+join_tabelas %>%
+  filter(descricao_cargo == "AUDITOR FEDERAL DE FINANCAS E CONTROLE") %>%
+  mutate(posicao_carreira = str_c(classe_cargo,"-",padrao_cargo)) %>%
+  group_by(posicao_carreira) %>%
+  summarise(
+    quantidade = n()
+  ) %>%
+  ungroup() %>%
+  ggplot(aes(x=posicao_carreira,y=quantidade,  fill= quantidade )) +
+  geom_col() +
+  scale_fill_continuous_sequential(palette = "OrYel") +
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "#575756"),
+    panel.grid = element_blank(),
+    legend.position = "right"
+  ) +
+  labs(
+    title= "AFFC - Evolução das classes (quantidade)",
+    fill = "Quantidade",
+    x="",
+    y=""
+  )
+
+
+join_tabelas %>%
+  filter(descricao_cargo == "AUDITOR FEDERAL DE FINANCAS E CONTROLE") %>%
+  mutate(posicao_carreira = str_c(classe_cargo,"-",padrao_cargo)) %>%
+  ungroup() %>%
+  ggplot(aes(x=posicao_carreira,y=remuneracao_basica_bruta_r, )) +
+  geom_boxplot(color= "white") +
+
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "#575756"),
+    panel.grid = element_blank(),
+    legend.position = "right"
+  ) +
+  labs(
+    title= "AFFC - Distribuição de remunerações por classes",
+    x="",
+    y=""
+  )
+
+
+
+
+
 
 #Desenvovler a query de extremos para pegar os top 40 maiores e menores e calcular a mediana
 extremos_remuneracao_cargos<-
@@ -113,3 +187,73 @@ teste_affc_2016<-
 
 ##A mediana é um bom proxy para a remuneração básica bruta do último nível da carreira. Para Dezembro de 2016 este valor bate no centavo
 median(teste_affc_2016$remuneracao_basica_bruta_r)
+
+
+join_tabelas_2016 %>%
+  filter(descricao_cargo == "AUDITOR FEDERAL DE FINANCAS E CONTROLE") %>%
+  mutate(posicao_carreira = str_c(classe_cargo,"-",padrao_cargo)) %>%
+  group_by(posicao_carreira) %>%
+  summarise(
+    quantidade = n()
+  ) %>%
+  ungroup() %>%
+  mutate(posicao_carreira = reorder(posicao_carreira, quantidade)) %>%
+  ggplot(aes(x=quantidade, y=posicao_carreira, fill= quantidade )) +
+  geom_col() +
+  scale_fill_continuous_sequential(palette = "OrYel") +
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "#575756"),
+    panel.grid = element_blank(),
+    legend.position = "right"
+  ) +
+  labs(
+    title= "AFFC - Ranking das classes (quantidade)",
+    fill = "Quantidade",
+    x="",
+    y=""
+  )
+
+join_tabelas_2016 %>%
+  filter(descricao_cargo == "AUDITOR FEDERAL DE FINANCAS E CONTROLE") %>%
+  mutate(posicao_carreira = str_c(classe_cargo,"-",padrao_cargo)) %>%
+  group_by(posicao_carreira) %>%
+  summarise(
+    quantidade = n()
+  ) %>%
+  ungroup() %>%
+  ggplot(aes(x=posicao_carreira,y=quantidade,  fill= quantidade )) +
+  geom_col() +
+  scale_fill_continuous_sequential(palette = "OrYel") +
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "#575756"),
+    panel.grid = element_blank(),
+    legend.position = "right"
+  ) +
+  labs(
+    title= "AFFC - Evolução das classes (quantidade)",
+    fill = "Quantidade",
+    x="",
+    y=""
+  )
+
+
+join_tabelas_2016 %>%
+  filter(descricao_cargo == "AUDITOR FEDERAL DE FINANCAS E CONTROLE") %>%
+  mutate(posicao_carreira = str_c(classe_cargo,"-",padrao_cargo)) %>%
+  ungroup() %>%
+  ggplot(aes(x=posicao_carreira,y=remuneracao_basica_bruta_r, )) +
+  geom_boxplot(color= "white") +
+
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "#575756"),
+    panel.grid = element_blank(),
+    legend.position = "right"
+  ) +
+  labs(
+    title= "AFFC - Distribuição de remunerações por classes",
+    x="",
+    y=""
+  )

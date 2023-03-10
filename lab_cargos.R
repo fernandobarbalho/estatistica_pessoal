@@ -32,21 +32,3 @@ busca_dados_cadastro <- function(ano, mes, faz_download= TRUE){
 
 
 Cadastro_201612<- busca_dados_cadastro("2016","12",FALSE)
-
-
-
-concursados_gestao<-
-Cadastro_201612 %>%
-  mutate(ano_ingresso = str_sub(data_ingresso_cargofuncao ,7,10)) %>%
-  filter(regime_juridico == "REGIME JURIDICO UNICO",
-         descricao_cargo == "ESP POL PUBL GESTAO GOVERNAMENTAL",
-         )%>%
-  group_by(ano_ingresso) %>%
-  summarise(
-    quantidade = n()
-  )
-
-###A partir dos dados de cadastro de servidores não é possível chegar às estatísticas do BEP referente a concursos
-###Numa primeira observação dos dados do PEP, há compatibilidade entre os dados. Explorar os dados para saber o tamanho da diferença
-
-
