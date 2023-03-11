@@ -33,11 +33,11 @@ busca_dados_remuneracao <- function(ano, mes, faz_download= TRUE){
 
 
 
-### Para remuneração o PEP não consegue responder ao que é demandado na tabela 3.1 do BEP de Jan_2017
+### Para remuneração as tabelas do PEP não conseguem responder ao que é demandado na tabela 3.1 do BEP de Jan_2017
 
 ## Também não é possível fazer comparações dos dados do BEP com PEP já que o primeiro mês disponível no PEP é janeiro de 2017 e o último mês para o BEP ´dezembro de 2016
 
-## Testatndo a comparação de Janeiro de 2023 entre Portal da Transparência e PEP
+## Testando a comparação de Janeiro de 2023 entre Portal da Transparência e PEP
 remuneracao_jan_2023 <- busca_dados_remuneracao("2023","01",FALSE)
 
 cadastro_jan_2023<- busca_dados_cadastro("2023","01",FALSE)

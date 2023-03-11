@@ -1,0 +1,75 @@
+---
+title: "Fontes de dados para o BEP"
+author: "Fernando Barbalho"
+format: html
+editor: visual
+---
+
+## Objetivo
+
+Comparar os dados do Boletim Estatístico de Pessoal (BEP) com outras fontes de dados buscando identificar quais fontes são compatívies com o BEP
+
+## Metodologia
+
+Comparação dos seguintes aspectos de dados do BEP:
+
+-   Despesa de Pessoal
+
+-   Servidores
+
+-   Remuneração
+
+-   Concursos
+
+-   Cargos
+
+As fontes dos dados para comparação são:
+
+-   BEP para o ano de 2016
+
+-   [Painel Estatístico de Pessoal](http://painel.pep.planejamento.gov.br) (PEP)
+
+-   [Portal da Transparência](https://portaldatransparencia.gov.br/download-de-dados/servidores)
+
+-   Dados abertos de [Despesas e transferências totais da União](https://www.tesourotransparente.gov.br/ckan/dataset/despesas-e-transferencias-totais)
+
+## Despesa de Pessoal
+
+Na comparação entre BEP e PEP os valores não são idênticos mas são aproximados
+
+![Despesa BEP](despesa_total_2016_bep.png){width="600"}
+
+![Despesa PEP](despesa_total_2016_pep.png)
+
+Na comparação entre BEP e dados de Despesas e transferências totais da União, os dados dos poderes legislativo , Judiciário e MPU aparentam estar próximos , porém o dado de poder executivo civil está com uma diferença de 10 bilhões de reais.
+
+Veja abaixo os dados que vêm do portal Tesouro Transparente considerando os valores de gastos com servidores ativos
+
+```{r}
+library(kableExtra)
+library(tidyverse)
+rtn_despesas_primarias_ano_anterior<-
+  readxl::read_xlsx("arquivo_despesa.xlsx", sheet = 2)
+
+
+rtn_dimensional_ano_anterior<-
+  rtn_despesas_primarias_ano_anterior %>%
+  filter(CATEGORIA_RTN == "II.2.1 - Pessoal e Encargos Sociais - Ativo civil") %>%
+  #mutate(Data = as.Date(paste(ID_ANO, ID_MES,"01",sep="-")) ) %>%
+  group_by(PODER ) %>% # CATEGORIA_RTN,NO_FUNCAO_PT, ORGAO_DESCRICAO, NO_PROGRAMA_PT,NO_ACAO
+  summarise(
+    total_paga_ano = sum(DESPESAS_PAGAS/10^6),
+    total_liquidado_ano = sum(DESPESAS_LIQUIDADAS/10^6)
+  ) %>%
+  ungroup() %>%
+  arrange(desc(total_liquidado_ano))
+
+kable(rtn_dimensional_ano_anterior)
+
+```
+
+E abaixo algumas tabelas que demonstram os dados dos poderes executivo e judiciário
+
+![](despesa_legislativo_2016.png)
+
+![](despesa_judiciario_2016.png)
