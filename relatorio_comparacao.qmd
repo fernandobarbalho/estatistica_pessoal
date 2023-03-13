@@ -285,3 +285,199 @@ cadastro_dez_2016 %>%
 ####Os dados do PEP batem com os dados do BEP
 
 ```
+
+## Inovações nas análises com dados do portal da transparência
+
+Os dados das tabelas do Portal da Transparência possuem granularidade relacionados a servidor. Isso permite uma maior possibilidadde de análise de dados que estejam associados a estatísticas de distribuição das variáveis. Além disso, o Portal da Transparência possui alguns campos que não estão ativos nem no PEP nem no GEP. Veja abaixo alguns gráficos que foram construídos somente com os dados do Portal da Transparência seguido de uma rápida análise sobre o que se pode extrair das figuras.
+
+*Dados para 2016*
+
+```{r fig.width=12, fig.height=5, echo=TRUE, message=FALSE, warning=FALSE}
+
+library(patchwork)
+library(colorspace)
+
+graf_a<-
+join_tabelas_2016 %>%
+  filter(descricao_cargo == "AUDITOR FEDERAL DE FINANCAS E CONTROLE") %>%
+  mutate(posicao_carreira = str_c(classe_cargo,"-",padrao_cargo)) %>%
+  group_by(posicao_carreira) %>%
+  summarise(
+    quantidade = n()
+  ) %>%
+  ungroup() %>%
+  mutate(posicao_carreira = reorder(posicao_carreira, quantidade)) %>%
+  ggplot(aes(x=quantidade, y=posicao_carreira, fill= quantidade )) +
+  geom_col() +
+  scale_fill_continuous_sequential(palette = "OrYel") +
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "#575756"),
+    panel.grid = element_blank(),
+    axis.text.x = element_text(angle = 90),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title= "AFFC - Ranking das classes",
+    subtitle = "Quantidade",
+    fill = "Quantidade",
+    x="",
+    y=""
+  )
+
+graf_b<-
+join_tabelas_2016 %>%
+  filter(descricao_cargo == "AUDITOR FEDERAL DE FINANCAS E CONTROLE") %>%
+  mutate(posicao_carreira = str_c(classe_cargo,"-",padrao_cargo)) %>%
+  group_by(posicao_carreira) %>%
+  summarise(
+    quantidade = n()
+  ) %>%
+  ungroup() %>%
+  ggplot(aes(x=posicao_carreira,y=quantidade,  fill= quantidade )) +
+  geom_col() +
+  scale_fill_continuous_sequential(palette = "OrYel") +
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "#575756"),
+    panel.grid = element_blank(),
+    axis.text.x = element_text(angle = 90),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title= "AFFC - Evolução das classes",
+    subtitle = "Quantidade",
+    fill = "Quantidade",
+    x="",
+    y=""
+  )
+
+graf_c<-
+join_tabelas_2016 %>%
+  filter(descricao_cargo == "AUDITOR FEDERAL DE FINANCAS E CONTROLE") %>%
+  mutate(posicao_carreira = str_c(classe_cargo,"-",padrao_cargo)) %>%
+  ungroup() %>%
+  ggplot(aes(x=posicao_carreira,y=remuneracao_basica_bruta_r, )) +
+  geom_boxplot(color= "white") +
+
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "#575756"),
+    panel.grid = element_blank(),
+    axis.text.x = element_text(angle = 90),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title= "AFFC - Distribuição de remunerações",
+    x="",
+    y=""
+  )
+
+graf_a|graf_b|graf_c
+```
+
+*Dados para 2023*
+
+```{r fig.width=12, fig.height=5, echo=TRUE, message=FALSE, warning=FALSE}
+
+remuneracao_jan_2023 <- busca_dados_remuneracao("2023","01",FALSE)
+
+cadastro_jan_2023<- busca_dados_cadastro("2023","01",FALSE)
+
+
+join_tabelas<-
+remuneracao_jan_2023 %>%
+  inner_join(
+    cadastro_jan_2023 %>%
+      group_by(id_servidor_portal) %>%
+      summarise(
+        quantidade = n()
+      ) %>%
+      filter(quantidade == 1)
+  ) %>%
+  inner_join(cadastro_jan_2023, by= c("id_servidor_portal"))
+
+graf_a<-
+join_tabelas %>%
+  filter(descricao_cargo == "AUDITOR FEDERAL DE FINANCAS E CONTROLE") %>%
+  mutate(posicao_carreira = str_c(classe_cargo,"-",padrao_cargo)) %>%
+  group_by(posicao_carreira) %>%
+  summarise(
+    quantidade = n()
+  ) %>%
+  ungroup() %>%
+  mutate(posicao_carreira = reorder(posicao_carreira, quantidade)) %>%
+  ggplot(aes(x=quantidade, y=posicao_carreira, fill= quantidade )) +
+  geom_col() +
+  scale_fill_continuous_sequential(palette = "OrYel") +
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "#575756"),
+    panel.grid = element_blank(),
+    axis.text.x = element_text(angle = 90),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title= "AFFC - Ranking das classes",
+    subtitle = "Quantidade",
+    fill = "Quantidade",
+    x="",
+    y=""
+  )
+
+graf_b<-
+join_tabelas %>%
+  filter(descricao_cargo == "AUDITOR FEDERAL DE FINANCAS E CONTROLE") %>%
+  mutate(posicao_carreira = str_c(classe_cargo,"-",padrao_cargo)) %>%
+  group_by(posicao_carreira) %>%
+  summarise(
+    quantidade = n()
+  ) %>%
+  ungroup() %>%
+  ggplot(aes(x=posicao_carreira,y=quantidade,  fill= quantidade )) +
+  geom_col() +
+  scale_fill_continuous_sequential(palette = "OrYel") +
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "#575756"),
+    panel.grid = element_blank(),
+    axis.text.x = element_text(angle = 90),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title= "AFFC - Evolução das classes",
+    subtitle = "Quantidade",
+    fill = "Quantidade",
+    x="",
+    y=""
+  )
+
+graf_c<-
+join_tabelas %>%
+  filter(descricao_cargo == "AUDITOR FEDERAL DE FINANCAS E CONTROLE") %>%
+  mutate(posicao_carreira = str_c(classe_cargo,"-",padrao_cargo)) %>%
+  ungroup() %>%
+  ggplot(aes(x=posicao_carreira,y=remuneracao_basica_bruta_r, )) +
+  geom_boxplot(color= "white") +
+
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "#575756"),
+    panel.grid = element_blank(),
+    axis.text.x = element_text(angle = 90),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title= "AFFC - Distribuição de remunerações",
+    x="",
+    y=""
+  )
+
+graf_a|graf_b|graf_c
+
+
+```
+
+Os gráficos fazem a comparação entre dois momentos da carreira de Auditor Federal de Finanças e Controle (AFFC), no caso esses momentos são Dezembro de 2016 e Janeiro de 2023. Percebe-se pelo gráfico que a carreira está se concentrando cada vez mais no seu último estágio, havendo portanto uma possível falta de renovação.
+
+Ao se observar o acompanhamento da rentabilidade bruta, percebe-se que as medianas não sofreram alterações fortes, com o destaque para a ocorrência de poucos outilers importantes
