@@ -20,7 +20,7 @@ sheets<- readxl::excel_sheets("arquivo_despesa_2016.xlsx")
 sheet_num <- 2
 
 rtn_despesas_primarias_ano_anterior<-
-  readxl::read_xlsx("arquivo_despesa_2016.xlsx", sheet = sheet_num)
+  readxl::read_xlsx("arquivo_despesa.xlsx", sheet = sheet_num)
 
 
 
@@ -29,10 +29,10 @@ rtn_dimensional_ano_anterior<-
   rtn_despesas_primarias_ano_anterior %>%
   filter(CATEGORIA_RTN == "II.2.1 - Pessoal e Encargos Sociais - Ativo civil") %>%
   #mutate(Data = as.Date(paste(ID_ANO, ID_MES,"01",sep="-")) ) %>%
-  group_by(ID_ANO, ID_MES, ORGAO_DESCRICAO ) %>% # CATEGORIA_RTN,NO_FUNCAO_PT, ORGAO_DESCRICAO, NO_PROGRAMA_PT,NO_ACAO
+  group_by(PODER ) %>% # CATEGORIA_RTN,NO_FUNCAO_PT, ORGAO_DESCRICAO, NO_PROGRAMA_PT,NO_ACAO
   summarise(
-    total_paga_ano = sum(DESPESAS_PAGAS),
-    total_liquidado_ano = sum(DESPESAS_LIQUIDADAS)
+    total_paga_ano = sum(DESPESAS_PAGAS/10^6),
+    total_liquidado_ano = sum(DESPESAS_LIQUIDADAS/10^6)
   ) %>%
   ungroup()
 

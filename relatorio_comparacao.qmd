@@ -5,9 +5,75 @@ format: html
 editor: visual
 ---
 
+```{r setup, echo= FALSE, message=FALSE, warning=FALSE}
+
+library(kableExtra)
+library(tidyverse)
+
+busca_dados_remuneracao <- function(ano, mes, faz_download= TRUE){
+
+  diretorio_trabalho<-  paste0("data/sevidor_siape",ano,mes)
+
+  if (faz_download){
+    url_base<- sprintf("https://portaldatransparencia.gov.br/download-de-dados/servidores/%s%s_Servidores_SIAPE",ano,mes)
+
+    print(url_base)
+
+
+    download.file(url = url_base, destfile = "data/dado_servidor.zip", mode = "wb")
+
+    unzip(zipfile = "data/dado_servidor.zip",exdir = diretorio_trabalho)
+
+
+  }
+
+
+
+  arquivo_trabalho<- paste0(diretorio_trabalho,"/",ano,mes,"_Remuneracao.csv")
+
+  library(readr)
+  janitor::clean_names(read_delim(arquivo_trabalho,
+                                  delim = ";", escape_double = FALSE, locale = locale(decimal_mark = ",",
+                                                                                      grouping_mark = ".", encoding = "LATIN1"),
+                                  trim_ws = TRUE))
+}
+
+
+busca_dados_cadastro <- function(ano, mes, faz_download= TRUE){
+
+  diretorio_trabalho<-  paste0("data/sevidor_siape",ano,mes)
+
+  if (faz_download){
+    url_base<- sprintf("https://portaldatransparencia.gov.br/download-de-dados/servidores/%s%s_Servidores_SIAPE",ano,mes)
+
+    print(url_base)
+
+
+    download.file(url = url_base, destfile = "data/dado_servidor.zip", mode = "wb")
+
+    unzip(zipfile = "data/dado_servidor.zip",exdir = diretorio_trabalho)
+
+
+  }
+
+
+
+  arquivo_trabalho<- paste0(diretorio_trabalho,"/",ano,mes,"_Cadastro.csv")
+
+  library(readr)
+  janitor::clean_names(read_delim(arquivo_trabalho,
+                                  delim = ";", escape_double = FALSE, locale = locale(encoding = "LATIN1"),
+                                  trim_ws = TRUE))
+
+}
+
+
+
+```
+
 ## Objetivo
 
-Comparar os dados do Boletim Estatístico de Pessoal (BEP) com outras fontes de dados buscando identificar quais fontes são compatívies com o BEP
+Comparar os dados do Boletim Estatístico de Pessoal (BEP) com outras fontes de dados buscando identificar quais fontes são compatívies com o BEP e identificar análises inovadoras em relação ao BEP e ao PEP que podem ser feitas a partir do acesso a uma base de dados aberta ao nível de servidor.
 
 ## Metodologia
 
@@ -45,9 +111,7 @@ Na comparação entre BEP e dados de Despesas e transferências totais da União
 
 Veja abaixo os dados que vêm do portal Tesouro Transparente considerando os valores de gastos com servidores ativos
 
-```{r}
-library(kableExtra)
-library(tidyverse)
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 rtn_despesas_primarias_ano_anterior<-
   readxl::read_xlsx("arquivo_despesa.xlsx", sheet = 2)
 
@@ -73,3 +137,151 @@ E abaixo algumas tabelas que demonstram os dados dos poderes executivo e judici�
 ![](despesa_legislativo_2016.png)
 
 ![](despesa_judiciario_2016.png)
+
+## Servidores
+
+Em relação às quantidades de servidores há compatibilidade total entre o número de servidores civis do BEP e do PEP para 2016. Não consegui encontrar dados sobre servidores militares, Banco Central, legislativo e judiciário. Veja abaixo a comparação
+
+![Servidores 2016 - BEP](servidores_dezembro_2016_BEP.png)
+
+![Servidores 2016 - PEP](servidores_dezembro_2016_PEP.png)
+
+Já em relação à tabela de cadastro de servidores públicos disponível a partir do Portal da Transparência, pode-se verificar que não há compatibilidade entre os dados em relação à estrutura dos órgãos superiores. No Portal da Transparência a estrutura mais atualizada disponível é refletida para todos os anos o que impede essa comparação. Veja abaixo os dados presentes no BEP para Dezembro de 2016.
+
+![Órgãos superiores em dez 2016](estrutrua_orgaos_superiores_dez_2016.png)
+
+E abaixo executamos o script que traz a totalização dos órgãos em Dezembro de 2016 na tabela do Portal da Transparência
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+siape_201612_Cadastro<- busca_dados_cadastro("2016","12",FALSE)
+
+siape_201612_Cadastro %>%
+  distinct(orgsup_lotacao,
+           id_servidor_portal) %>%
+  group_by(orgsup_lotacao) %>%
+  summarise(
+    quantidade = n()
+  ) %>%
+  arrange(orgsup_lotacao) %>%
+  kable()
+
+```
+
+Na impossibilidade de se comparar diretamente BEP com os dados do Portal da Transparência, passa a ser interessante a comparação da tabela cadastro com o PEP para Janeiro de 2023 já que a estrutura de órgãos superiores é a mesma. Mesmo nesse caso não é possível fazer comparações pelo elevado número de servidores sem a correta associação aos **órgão superiores de lotação** o que gera elevado número de alocações com status de "Sem Informação". Vide abaixo.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+siape_202301_Cadastro<- busca_dados_cadastro("2023","01", FALSE)
+
+siape_202301_Cadastro %>%
+  distinct(orgsup_lotacao,
+           id_servidor_portal) %>%
+  group_by(orgsup_lotacao) %>%
+  summarise(
+    quantidade = n()
+  ) %>%
+  arrange(desc(quantidade)) %>%
+  kable()
+
+```
+
+Após a exploração dos dados, identifca-se facilmente que o problema de ausência de registro não ocorre no nível inferoir relatvio aos órgãos, mas ainda assim não há compatibilidade total entre o número de servidores no PEP e no Portal da Transparência. Veja abaixo uma tabela resumo do Portal da Transparência para órgãos de lotação.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+siape_202301_Cadastro %>%
+  distinct(org_lotacao,
+           id_servidor_portal) %>%
+  group_by(org_lotacao) %>%
+  summarise(
+    quantidade = n()
+  ) %>%
+  arrange(desc(quantidade)) %>%
+  slice_max(order_by = quantidade, n=10) %>%
+  kable()
+
+```
+
+E abaixo um gráfico com o ranking presente no PEP para Janeiro de 2023.
+
+![](ranking_orgaos_pep_jan_2023.png)
+
+## Remuneração
+
+Em relação à remuneração, os dados disponibilizados pelo PEP não conseguem responder ao que é demandado na tabela 3.1 do BEP de Jan_2017. Também não é possível fazer comparações dos dados do BEP com PEP já que o primeiro mês disponível no PEP é janeiro de 2017 e o último mês para o BEP é dezembro de 2016.
+
+Quando comparamos os dados do Portal da Transparência com o PEP para Dezembro de 2016 percebemos compatibilidades dos dados. Veja abaixo o dado que mostra a mediana das remunerações brutas para o último nível da carreira de Auditor Federal de Finanças e Controle.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+remuneracao_dez_2016 <- busca_dados_remuneracao("2016","12",FALSE)
+
+cadastro_dez_2016<- busca_dados_cadastro("2016","12",FALSE)
+
+
+join_tabelas_2016<-
+  remuneracao_dez_2016 %>%
+  inner_join(
+    cadastro_dez_2016 %>%
+      group_by(id_servidor_portal) %>%
+      summarise(
+        quantidade = n()
+      ) %>%
+      filter(quantidade == 1)
+  ) %>%
+  inner_join(cadastro_dez_2016, by= c("id_servidor_portal"))
+
+
+##Testando a maior remuneração de carreira para AFFC
+teste_affc_2016<-
+  join_tabelas_2016 %>%
+  filter(classe_cargo == "S",
+         padrao_cargo == "IV",
+         descricao_cargo == "AUDITOR FEDERAL DE FINANCAS E CONTROLE")
+
+##A mediana é um bom proxy para a remuneração básica bruta do último nível da carreira. Para Dezembro de 2016 este valor bate no centavo
+median(teste_affc_2016$remuneracao_basica_bruta_r)
+
+```
+
+\
+O valor da mediana indicado acima é 100% compatível com o valor máximo de remuneração para a carreira de AFFC em Dezembro de 2016 no BEP, conforme pode ser visto na figura abaixo.
+
+![](AFFC_Dezembro_2016.png)
+
+## Concursos
+
+Em relação às entradas no serviço público por intermédio de concursos, a base do PEP é bastante compatível com a do BEP, muito embora não se chegue aos mesmos valores para algumas amostras levantadas. Veja as figuras abaixo onde se pode comparar o número de ingressos por concursos para as carreiras de Policial Federal e Policial Rodoviário Federal.
+
+![Concursos 2016 - BEP](concursos_2016_bep.png)
+
+![Concursos_2016_pep](concursos_2016_pep.png)
+
+Já em relação a análise a partir da tabela de Cadastro do Portal da Transparência, nota-se que a estrutura da tabela não permite se chegar à conclusões sobre o número de servidores que foram admitidos por concurso em um determinado período.
+
+## Cargos
+
+Quando se compara os dados de cargo entre BEP e PEP percebe-se total compatibilidade para as amostras analisadas. Veja as figuras abaixo.
+
+![Cargos BEP - 2016](cargos_bep_2016.png)
+
+![Cargos PEP - 2016](cargos_pep_2016.png)
+
+Quando a comparação é feita tendo como referência os dados do Portal da transparência, também se consegue perceber compatbilidades nos dados, mesmo que não seja total.
+
+```{r echo= TRUE, message=FALSE, warning=FALSE}
+
+cadastro_dez_2016 %>%
+  filter(sigla_funcao != -1)%>%
+  group_by(sigla_funcao,
+           funcao) %>%
+  summarise(
+    quantidade = n()
+  ) %>%
+  arrange(sigla_funcao)%>%
+  kable()
+
+
+####Os dados de função da tabela de cadastro aproximam-se dos dados do BEP
+####Os dados do PEP batem com os dados do BEP
+
+```
