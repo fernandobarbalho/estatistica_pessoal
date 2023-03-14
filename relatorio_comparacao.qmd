@@ -206,6 +206,18 @@ E abaixo um gráfico com o ranking presente no PEP para Janeiro de 2023.
 
 ![](ranking_orgaos_pep_jan_2023.png)
 
+Quando se foca nas estatísticas por sexo, percebe-se que o Portal da Transparência não traz esse dado. Por outro lado, ao se comparar o BEP com o PEP vê-se que os valores totais não coincidem. Vide abaixo.
+
+![Distribuição por sexo - BEP 2016](servidores_sexo_bep_2016.png)
+
+![Distribuição por sexo - PEP 2016](servidores_sexo_pep_2016.png)
+
+Já em relação a idade, observa-se que não há esse dado no Portal da Transparência. O PEP tem esse dado mas o nível de granularidade da informação não permite comparação com o BEP. Veja abaixo duas figuras que evidenciam o problema.
+
+![Idade média dos servidores - BEP 2016](idade_media_servidores_bep_2016.png)
+
+![Idade média dos servidores - PEP 2016](idade_media_servidores_pep_2016.png)
+
 ## Remuneração
 
 Em relação à remuneração, os dados disponibilizados pelo PEP não conseguem responder ao que é demandado na tabela 3.1 do BEP de Jan_2017. Também não é possível fazer comparações dos dados do BEP com PEP já que o primeiro mês disponível no PEP é janeiro de 2017 e o último mês para o BEP é dezembro de 2016.
@@ -480,4 +492,4 @@ graf_a|graf_b|graf_c
 
 Os gráficos fazem a comparação entre dois momentos da carreira de Auditor Federal de Finanças e Controle (AFFC), no caso esses momentos são Dezembro de 2016 e Janeiro de 2023. Percebe-se pelo gráfico que a carreira está se concentrando cada vez mais no seu último estágio, havendo portanto uma possível falta de renovação.
 
-Ao se observar o acompanhamento da rentabilidade bruta, percebe-se que as medianas não sofreram alterações fortes, com o destaque para a ocorrência de poucos outilers importantes
+Ao se observar o acompanhamento da rentabilidade bruta, percebe-se que as medianas não sofreram alterações fortes, com o destaque para a ocorrência de poucos outliers importantes
