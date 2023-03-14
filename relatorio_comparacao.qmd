@@ -1,8 +1,15 @@
 ---
 title: "Fontes de dados para o BEP"
 author: "Fernando Barbalho"
-format: html
+format: 
+  html:
+    code-fold: true
+    self-contained: false
 editor: visual
+execute:
+  warning: false
+  message: false
+  cache: true
 ---
 
 ```{r setup, echo= FALSE, message=FALSE, warning=FALSE}
