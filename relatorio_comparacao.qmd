@@ -4,7 +4,7 @@ author: "Fernando Barbalho"
 format: 
   html:
     code-fold: true
-    self-contained: false
+    self-contained: true
 editor: visual
 execute:
   warning: false
@@ -23,6 +23,36 @@ busca_dados_remuneracao <- function(ano, mes, faz_download= TRUE){
 
   if (faz_download){
     url_base<- sprintf("https://portaldatransparencia.gov.br/download-de-dados/servidores/%s%s_Servidores_SIAPE",ano,mes)
+
+    print(url_base)
+
+
+    download.file(url = url_base, destfile = "data/dado_servidor.zip", mode = "wb")
+
+    unzip(zipfile = "data/dado_servidor.zip",exdir = diretorio_trabalho)
+
+
+  }
+
+
+
+  arquivo_trabalho<- paste0(diretorio_trabalho,"/",ano,mes,"_Remuneracao.csv")
+
+  library(readr)
+  janitor::clean_names(read_delim(arquivo_trabalho,
+                                  delim = ";", escape_double = FALSE, locale = locale(decimal_mark = ",",
+                                                                                      grouping_mark = ".", encoding = "LATIN1"),
+                                  trim_ws = TRUE))
+}
+
+
+busca_dados_aposentadoria <- function(ano, mes, faz_download= TRUE){
+
+
+  diretorio_trabalho<-  paste0("data/sevidor_siape",ano,mes)
+
+  if (faz_download){
+    url_base<- sprintf("https://portaldatransparencia.gov.br/download-de-dados/servidores/%s%s_Aposentados_SIAPE",ano,mes)
 
     print(url_base)
 
@@ -279,7 +309,7 @@ Já em relação a análise a partir da tabela de Cadastro do Portal da Transpar
 
 ## Cargos
 
-Quando se compara os dados de cargo entre BEP e PEP percebe-se total compatibilidade para as amostras analisadas. Veja as figuras abaixo.
+Quando se compara os dados de cargo entre BEP e PEP percebe-se grande compatibilidade para as amostras analisadas, com muitos dos cargos com quantitativos exibindo os mesmos valores. Por outro lado há diferença para o caso de DAS. Veja as figuras abaixo.
 
 ![Cargos BEP - 2016](cargos_bep_2016.png)
 
@@ -305,11 +335,24 @@ cadastro_dez_2016 %>%
 
 ```
 
+## Aposentadorias
+
+Quando se compara os números de aposentadorias para o ano de 2016 do PEP com o BEP percebe-se que os valores estão bastante próximos. Vide figuras abaixo.
+
+![Aposentadorias 2016 - BEP](aposentadoria_2016_bep.png)
+
+![Aposentadorias 2016 - PEP](aposentadoria_2016_pep.png)
+
+Quando se trabalha com os dados de aposentados presentes no Portal da Transparência encontramos dois fatores impeditivos para fazer comparações com o BEP. O primeiro é que a estrutura dos dados não permite identificar os servidores que se aposentaram em um determinado período. O segundo fator é que não existem dados de aposentados para Dezembro de 2016 no Portal da Transparência.
+
 ## Inovações nas análises com dados do portal da transparência
 
 Os dados das tabelas do Portal da Transparência possuem granularidade relacionados a servidor. Isso permite uma maior possibilidadde de análise de dados que estejam associados a estatísticas de distribuição das variáveis. Além disso, o Portal da Transparência possui alguns campos que não estão ativos nem no PEP nem no GEP. Veja abaixo alguns gráficos que foram construídos somente com os dados do Portal da Transparência seguido de uma rápida análise sobre o que se pode extrair das figuras.
 
-*Dados para 2016*
+*Tabelas de Cadastro e remuneração*
+Na primeira análise vamos comparar a evolução da quantidade e remuneração de servidores que são Auditor Federal de Finanças e Controle (AFFC) de acordo com o nível de carreira. Comparamos nesse caso os dados para Dezembro de 2016 e Janeiro de 2023
+
+**Dados para 2016**
 
 ```{r fig.width=12, fig.height=5, echo=TRUE, message=FALSE, warning=FALSE}
 
@@ -395,7 +438,7 @@ join_tabelas_2016 %>%
 graf_a|graf_b|graf_c
 ```
 
-*Dados para 2023*
+**Dados para 2023**
 
 ```{r fig.width=12, fig.height=5, echo=TRUE, message=FALSE, warning=FALSE}
 
@@ -497,6 +540,51 @@ graf_a|graf_b|graf_c
 
 ```
 
-Os gráficos fazem a comparação entre dois momentos da carreira de Auditor Federal de Finanças e Controle (AFFC), no caso esses momentos são Dezembro de 2016 e Janeiro de 2023. Percebe-se pelo gráfico que a carreira está se concentrando cada vez mais no seu último estágio, havendo portanto uma possível falta de renovação.
+Percebe-se pelos gráficos que a carreira está se concentrando cada vez mais no seu último estágio, havendo portanto uma possível falta de renovação.
 
 Ao se observar o acompanhamento da rentabilidade bruta, percebe-se que as medianas não sofreram alterações fortes, com o destaque para a ocorrência de poucos outliers importantes
+
+*Aposentadorias*
+
+
+Como já indicado em parágrafos anteriores, não é possível fazer comparações entre dados Por outro lado, os dados disponíveis no Portal da Transparência permitem verificar a quantidade de aposentadorias pagas em um determinado mês, bem como é possível fazer levantamentos estatísticos sobre os valores pagos.
+
+Veja abaixo a quantidade de aposentadorias pagas para Dezembro de 2022
+
+```{r}
+
+aposentados_dez_2022<-
+  busca_dados_aposentadoria("2022","12")
+
+NROW(unique(aposentados_dez_2022$id_servidor_portal))
+
+```
+
+E logo abaixo uma visualização que mostra a distribuição de remuneração bruta também para Dezembro de 2022.
+
+```{r}
+mediana_bruta<-
+  round(median(aposentados_dez_2022$remuneracao_basica_bruta_r, na.rm = TRUE),0)
+
+aposentados_dez_2022%>%
+  mutate(categoria = "Aposentadorias") %>%
+  #filter(remuneracao_apos_deducoes_obrigatorias_r>0) %>%
+  ggplot(aes(x=categoria,y=remuneracao_basica_bruta_r )) +
+  geom_boxplot(fill= NA, color= "white")+
+  scale_y_continuous(breaks = c(seq(0,60000,20000), mediana_bruta))+
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "#575756"),
+    panel.grid = element_blank(),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title= "Distribuição de aposentadorias em Dezembro de 2022",
+    x="",
+    y="Valores em R$"
+  )
+
+  
+
+```
+
