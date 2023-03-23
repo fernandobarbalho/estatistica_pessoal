@@ -349,10 +349,11 @@ Quando se trabalha com os dados de aposentados presentes no Portal da Transparê
 
 Os dados das tabelas do Portal da Transparência possuem granularidade relacionados a servidor. Isso permite uma maior possibilidadde de análise de dados que estejam associados a estatísticas de distribuição das variáveis. Além disso, o Portal da Transparência possui alguns campos que não estão ativos nem no PEP nem no GEP. Veja abaixo alguns gráficos que foram construídos somente com os dados do Portal da Transparência seguido de uma rápida análise sobre o que se pode extrair das figuras.
 
-*Tabelas de Cadastro e remuneração*
+**Tabelas de Cadastro e remuneração**
+
 Na primeira análise vamos comparar a evolução da quantidade e remuneração de servidores que são Auditor Federal de Finanças e Controle (AFFC) de acordo com o nível de carreira. Comparamos nesse caso os dados para Dezembro de 2016 e Janeiro de 2023
 
-**Dados para 2016**
+*Dados para 2016*
 
 ```{r fig.width=12, fig.height=5, echo=TRUE, message=FALSE, warning=FALSE}
 
@@ -438,7 +439,7 @@ join_tabelas_2016 %>%
 graf_a|graf_b|graf_c
 ```
 
-**Dados para 2023**
+*Dados para 2023*
 
 ```{r fig.width=12, fig.height=5, echo=TRUE, message=FALSE, warning=FALSE}
 
@@ -544,7 +545,7 @@ Percebe-se pelos gráficos que a carreira está se concentrando cada vez mais no
 
 Ao se observar o acompanhamento da rentabilidade bruta, percebe-se que as medianas não sofreram alterações fortes, com o destaque para a ocorrência de poucos outliers importantes
 
-*Aposentadorias*
+**Aposentadorias**
 
 
 Como já indicado em parágrafos anteriores, não é possível fazer comparações entre dados Por outro lado, os dados disponíveis no Portal da Transparência permitem verificar a quantidade de aposentadorias pagas em um determinado mês, bem como é possível fazer levantamentos estatísticos sobre os valores pagos.
@@ -585,6 +586,45 @@ aposentados_dez_2022%>%
   )
 
   
+
+```
+
+**Fluxo de servidores**
+
+Quais são os maiores fluxos de servidores entre órgãos de lotação e órgãos de exercício? Essa também é uma pergunta que pode ser respondida usando os dados com a granularidade da tabela de servidores vinda do Portal da Transparência. Veja abaixo o caso de Janeiro de 2023 para os oito órgãos que mais fornecem servidores para outros órgãos.
+
+```{r}
+max_fornecedor<-
+siape_202301_Cadastro %>%
+  filter(org_lotacao != org_exercicio) %>%
+  group_by(org_lotacao, org_exercicio) %>%
+  summarise(
+    quantidade = n()
+  ) %>%
+  ungroup() %>%
+  slice_max(order_by = quantidade, n=12) %>%
+  distinct(org_lotacao, org_exercicio)
+
+
+aluvial<-
+siape_202301_Cadastro %>%
+  filter(org_lotacao %in% max_fornecedor$org_lotacao,
+         org_exercicio %in% max_fornecedor$org_exercicio,
+         org_lotacao != org_exercicio) %>%
+  mutate(lotacao =  str_wrap(org_lotacao,10),
+         exercicio = str_wrap(org_exercicio,10)) %>%
+  select(lotacao, exercicio)
+
+
+library(easyalluvial)
+
+p<-
+  alluvial_wide( data = aluvial, 
+                 max_variables = 2, 
+                 fill_by = 'first_variable') 
+
+
+parcats::parcats(p, data_input = aluvial,marginal_histograms = FALSE,labelfont = list(size = 15, color = "black"), sortpaths= "backwards")
 
 ```
 

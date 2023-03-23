@@ -69,3 +69,37 @@ stn<-
 
 dados_fev_2023<-
   busca_dados_cadastro("2023","02")
+
+
+
+max_fornecedor<-
+dados_jan_2023 %>%
+  filter(org_lotacao != org_exercicio) %>%
+  group_by(org_lotacao, org_exercicio) %>%
+  summarise(
+    quantidade = n()
+  ) %>%
+  ungroup() %>%
+  slice_max(order_by = quantidade, n=12) %>%
+  distinct(org_lotacao, org_exercicio)
+
+
+aluvial<-
+dados_jan_2023 %>%
+  filter(org_lotacao %in% max_fornecedor$org_lotacao,
+         org_exercicio %in% max_fornecedor$org_exercicio,
+         org_lotacao != org_exercicio) %>%
+  mutate(lotacao =  str_wrap(org_lotacao,10),
+         exercicio = str_wrap(org_exercicio,10)) %>%
+  select(lotacao, exercicio)
+
+
+library(easyalluvial)
+
+p<-
+  alluvial_wide( data = aluvial,
+                 max_variables = 2,
+                 fill_by = 'first_variable')
+
+
+parcats::parcats(p, data_input = aluvial,marginal_histograms = FALSE,labelfont = list(size = 15, color = "black"), sortpaths= "backwards")
