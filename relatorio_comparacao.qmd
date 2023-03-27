@@ -16,6 +16,8 @@ execute:
 
 library(kableExtra)
 library(tidyverse)
+library(networkD3)
+
 
 busca_dados_remuneracao <- function(ano, mes, faz_download= TRUE){
 
@@ -547,7 +549,6 @@ Ao se observar o acompanhamento da rentabilidade bruta, percebe-se que as median
 
 **Aposentadorias**
 
-
 Como já indicado em parágrafos anteriores, não é possível fazer comparações entre dados Por outro lado, os dados disponíveis no Portal da Transparência permitem verificar a quantidade de aposentadorias pagas em um determinado mês, bem como é possível fazer levantamentos estatísticos sobre os valores pagos.
 
 Veja abaixo a quantidade de aposentadorias pagas para Dezembro de 2022
@@ -593,38 +594,133 @@ aposentados_dez_2022%>%
 
 Quais são os maiores fluxos de servidores entre órgãos de lotação e órgãos de exercício? Essa também é uma pergunta que pode ser respondida usando os dados com a granularidade da tabela de servidores vinda do Portal da Transparência. Veja abaixo o caso de Janeiro de 2023 para os oito órgãos que mais fornecem servidores para outros órgãos.
 
-```{r}
+![](sankey_pessoal.png)
+
+```{r echo= FALSE}
 max_fornecedor<-
 siape_202301_Cadastro %>%
   filter(org_lotacao != org_exercicio) %>%
+  distinct(id_servidor_portal, org_lotacao, org_exercicio) %>%
   group_by(org_lotacao, org_exercicio) %>%
   summarise(
     quantidade = n()
   ) %>%
   ungroup() %>%
   slice_max(order_by = quantidade, n=12) %>%
-  distinct(org_lotacao, org_exercicio)
+  distinct(org_lotacao, org_exercicio, quantidade)
 
 
-aluvial<-
-siape_202301_Cadastro %>%
-  filter(org_lotacao %in% max_fornecedor$org_lotacao,
-         org_exercicio %in% max_fornecedor$org_exercicio,
-         org_lotacao != org_exercicio) %>%
-  mutate(lotacao =  str_wrap(org_lotacao,10),
-         exercicio = str_wrap(org_exercicio,10)) %>%
-  select(lotacao, exercicio)
 
 
-library(easyalluvial)
-
-p<-
-  alluvial_wide( data = aluvial, 
-                 max_variables = 2, 
-                 fill_by = 'first_variable') 
 
 
-parcats::parcats(p, data_input = aluvial,marginal_histograms = FALSE,labelfont = list(size = 15, color = "black"), sortpaths= "backwards")
+orgaos_nodes<- unique(c(unique(max_fornecedor$org_lotacao), unique(max_fornecedor$org_exercicio)))
+
+df_orgaos_nodes<- tibble(name=orgaos_nodes, index=0:(length(orgaos_nodes)-1))
+
+
+
+orgaos_links<- 
+  max_fornecedor %>%
+  select(org_lotacao) %>%
+  inner_join(
+    df_orgaos_nodes,
+    by= join_by(org_lotacao == name)
+  ) %>%
+  rename(source = index) %>%
+  select(source) %>%
+  bind_cols(
+    max_fornecedor %>%
+      select(org_exercicio, quantidade) %>%
+      inner_join(
+        df_orgaos_nodes,
+        by= join_by(org_exercicio == name)
+      ) %>%
+      rename(target = index) %>%
+      select(target, quantidade)
+  )
+
+
+
+
+# Plot
+# sankeyNetwork(Links = orgaos_links, Nodes = df_orgaos_nodes, Source = "source",
+#               Target = "target", Value = "quantidade", NodeID = "name",
+#               units = "", fontSize = 12, nodeWidth = 30)
 
 ```
 
+Podemos exporar melhor o que caracteriza o fenômeno da alocação de pessoas do Ministério da saúde em Estados, municípios e empresas
+
+```{r}
+library(colorspace)
+
+siape_202301_Cadastro %>%
+  filter(cod_org_lotacao == 25000,
+         cod_org_exercicio == 99991) %>%
+  distinct(id_servidor_portal, descricao_cargo) %>%
+  group_by(descricao_cargo) %>%
+  summarise(
+    quantidade = n()
+  )%>%
+  ungroup() %>%
+  slice_max(quantidade, n=20) %>%
+  mutate(descricao_cargo= reorder(descricao_cargo,quantidade)) %>%
+  ggplot(aes(x=quantidade, y=descricao_cargo, fill= quantidade )) +
+  geom_col() +
+  scale_fill_continuous_sequential(palette = "OrYel") +
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "#575756"),
+    panel.grid = element_blank(),
+    axis.text.x = element_text(angle = 90)
+  ) +
+  labs(
+    title= "Servidores cedidos MS-Outros entes",
+    subtitle = "Quantidade por cargos",
+    fill = "Quantidade",
+    x="",
+    y=""
+  )
+
+
+```
+
+```{r}
+siape_202301_Cadastro %>%
+  filter(cod_org_lotacao == 25000,
+         cod_org_exercicio == 99991) %>%
+  distinct(id_servidor_portal, situacao_vinculo) %>%
+  group_by(situacao_vinculo) %>%
+  summarise(
+    quantidade = n()
+  )%>%
+  ungroup() %>%
+  slice_max(quantidade, n=20) %>%
+  mutate(situacao_vinculo= reorder(situacao_vinculo,quantidade)) %>%
+  ggplot(aes(x=quantidade, y=situacao_vinculo, fill= quantidade )) +
+  geom_col() +
+  scale_fill_continuous_sequential(palette = "OrYel") +
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "#575756"),
+    panel.grid = element_blank(),
+    axis.text.x = element_text(angle = 90)
+  ) +
+  labs(
+    title= "Servidores cedidos MS-Outros entes",
+    subtitle = "Quantidade por situação de vínculo",
+    fill = "Quantidade",
+    x="",
+    y=""
+  )
+
+```
+
+## Algumas questões
+
+-   Como acompanhar as mudanças de estruturas ao longo dos anos
+
+-   Como identificar algum órgão específico que é sabido existir pela tabela de órgãos mas não está presente na tabela do SIAPE. Por exemplo, SPU não aparece em nenhuma coluna
+
+-   Em outras palavras, como se resolve as relações entre códigos de órgãos de SIAPE, tabela de órgãos e SIAFI?
