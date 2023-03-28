@@ -9,7 +9,7 @@ editor: visual
 execute:
   warning: false
   message: false
-  cache: true
+  cache: false
 ---
 
 ```{r setup, echo= FALSE, message=FALSE, warning=FALSE}
@@ -592,11 +592,14 @@ aposentados_dez_2022%>%
 
 **Fluxo de servidores**
 
-Quais são os maiores fluxos de servidores entre órgãos de lotação e órgãos de exercício? Essa também é uma pergunta que pode ser respondida usando os dados com a granularidade da tabela de servidores vinda do Portal da Transparência. Veja abaixo o caso de Janeiro de 2023 para os oito órgãos que mais fornecem servidores para outros órgãos.
+Quais são os maiores fluxos de servidores entre órgãos de lotação e órgãos de exercício? Essa também é uma pergunta que pode ser respondida usando os dados com a granularidade da tabela de servidores vinda do Portal da Transparência. Veja abaixo o caso de Janeiro de 2023 para os nove órgãos que mais fornecem servidores para outros órgãos.O gráfico abaixo é dinâmico você pode ajustar a posição das caixas que representam os órgãos para cima ou para baixo para ver melhor o nome dos órgãos. Experimente também repousar o mouse sobre as faixas que ligam duas caixas para saber o número de servidores envolvidos na relação entre os dois órgãos representados pelas caixas.
 
-![](sankey_pessoal.png)
+
 
 ```{r echo= FALSE}
+
+#![](sankey_pessoal.png)
+
 max_fornecedor<-
 siape_202301_Cadastro %>%
   filter(org_lotacao != org_exercicio) %>%
@@ -644,13 +647,13 @@ orgaos_links<-
 
 
 # Plot
-# sankeyNetwork(Links = orgaos_links, Nodes = df_orgaos_nodes, Source = "source",
-#               Target = "target", Value = "quantidade", NodeID = "name",
-#               units = "", fontSize = 12, nodeWidth = 30)
+ sankeyNetwork(Links = orgaos_links, Nodes = df_orgaos_nodes, Source = "source",
+               Target = "target", Value = "quantidade", NodeID = "name",
+               units = "", fontSize = 12, nodeWidth = 30)
 
 ```
 
-Podemos exporar melhor o que caracteriza o fenômeno da alocação de pessoas do Ministério da saúde em Estados, municípios e empresas
+Podemos explorar melhor o que caracteriza o fenômeno da alocação de pessoas do Ministério da saúde em Estados, municípios e empresas
 
 ```{r}
 library(colorspace)
@@ -716,6 +719,70 @@ siape_202301_Cadastro %>%
   )
 
 ```
+
+Assim como também podemos fazer comparações com o quadro do último ano completo do governo Dilma
+
+```{r}
+
+dados_dez_2015<-
+  busca_dados_cadastro(ano="2015", mes="12", FALSE)
+
+
+max_fornecedor_dez_2015<-
+dados_dez_2015 %>%
+  filter(org_lotacao != org_exercicio) %>%
+  distinct(id_servidor_portal, org_lotacao, org_exercicio) %>%
+  group_by(org_lotacao, org_exercicio) %>%
+  summarise(
+    quantidade = n()
+  ) %>%
+  ungroup() %>%
+  slice_max(order_by = quantidade, n=12) %>%
+  distinct(org_lotacao, org_exercicio, quantidade)
+
+
+
+
+
+
+orgaos_nodes<- unique(c(unique(max_fornecedor_dez_2015$org_lotacao), unique(max_fornecedor_dez_2015$org_exercicio)))
+
+df_orgaos_nodes<- tibble(name=orgaos_nodes, index=0:(length(orgaos_nodes)-1))
+
+
+
+orgaos_links<- 
+  max_fornecedor_dez_2015 %>%
+  select(org_lotacao) %>%
+  inner_join(
+    df_orgaos_nodes,
+    by= join_by(org_lotacao == name)
+  ) %>%
+  rename(source = index) %>%
+  select(source) %>%
+  bind_cols(
+    max_fornecedor_dez_2015 %>%
+      select(org_exercicio, quantidade) %>%
+      inner_join(
+        df_orgaos_nodes,
+        by= join_by(org_exercicio == name)
+      ) %>%
+      rename(target = index) %>%
+      select(target, quantidade)
+  )
+
+
+
+
+# Plot
+ sankeyNetwork(Links = orgaos_links, Nodes = df_orgaos_nodes, Source = "source",
+               Target = "target", Value = "quantidade", NodeID = "name",
+               units = "", fontSize = 12, nodeWidth = 30)
+ 
+ 
+
+```
+
 
 ## Algumas questões
 
