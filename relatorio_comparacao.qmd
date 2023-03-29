@@ -9,7 +9,7 @@ editor: visual
 execute:
   warning: false
   message: false
-  cache: false
+  cache: true
 ---
 
 ```{r setup, echo= FALSE, message=FALSE, warning=FALSE}
@@ -722,6 +722,8 @@ siape_202301_Cadastro %>%
 
 Assim como também podemos fazer comparações com o quadro do último ano completo do governo Dilma
 
+Primeiro o fluxo de servidores entre órgãos de governo.
+
 ```{r}
 
 dados_dez_2015<-
@@ -780,6 +782,72 @@ orgaos_links<-
                units = "", fontSize = 12, nodeWidth = 30)
  
  
+
+```
+
+
+E abaixo a distribuição dos servidores ligados à saúde no fluxo para os municípios
+
+```{r}
+dados_dez_2015 %>%
+  filter(cod_org_lotacao == 25000 ,
+         cod_org_exercicio == 99991) %>%
+  distinct(id_servidor_portal, descricao_cargo) %>%
+  group_by(descricao_cargo) %>%
+  summarise(
+    quantidade = n()
+  )%>%
+  ungroup() %>%
+  slice_max(quantidade, n=20) %>%
+  mutate(descricao_cargo= reorder(descricao_cargo,quantidade)) %>%
+  ggplot(aes(x=quantidade, y=descricao_cargo, fill= quantidade )) +
+  geom_col() +
+  scale_fill_continuous_sequential(palette = "OrYel") +
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "#575756"),
+    panel.grid = element_blank(),
+    axis.text.x = element_text(angle = 90)
+  ) +
+  labs(
+    title= "Servidores cedidos MS -Outros entes",
+    subtitle = "Quantidade por cargos",
+    fill = "Quantidade",
+    x="",
+    y=""
+  )
+
+```
+
+
+```{r}
+dados_dez_2015 %>%
+  filter( cod_org_lotacao == 36205,
+         cod_org_exercicio == 99991) %>%
+  distinct(id_servidor_portal, descricao_cargo) %>%
+  group_by(descricao_cargo) %>%
+  summarise(
+    quantidade = n()
+  )%>%
+  ungroup() %>%
+  slice_max(quantidade, n=20) %>%
+  mutate(descricao_cargo= reorder(descricao_cargo,quantidade)) %>%
+  ggplot(aes(x=quantidade, y=descricao_cargo, fill= quantidade )) +
+  geom_col() +
+  scale_fill_continuous_sequential(palette = "OrYel") +
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "#575756"),
+    panel.grid = element_blank(),
+    axis.text.x = element_text(angle = 90)
+  ) +
+  labs(
+    title= "Servidores cedidos FNS -Outros entes",
+    subtitle = "Quantidade por cargos",
+    fill = "Quantidade",
+    x="",
+    y=""
+  )
 
 ```
 
