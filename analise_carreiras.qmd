@@ -1,0 +1,114 @@
+---
+title: "Laboratório de Carreiras"
+lang: pt 
+author: "Fernando Barbalho"
+format: 
+  html:
+    code-fold: true
+    self-contained: true
+editor: visual
+execute:
+  warning: false
+  message: false
+  cache: true
+---
+
+## Perfil das carreiras do Poder Executivo Federal
+
+Como as carreiras do executivo federal podem ser caracterizadas? Que grandes números podemos observar nas diversas carreiras? Quais estatísticas melhor definem as quantidades de servidores e remunerações de cada? É possível modelar agrupamentos de estágios de carreiras a partir dos dados? Essas são as perguntas que se quer responder nesse relatório
+
+```{r setup}
+#| echo: false
+#| message: false
+#| warning: false
+
+library(tidyverse)
+
+busca_dados_cadastro <- function(ano, mes, faz_download= TRUE){
+
+  diretorio_trabalho<-  paste0("data/sevidor_siape",ano,mes)
+
+  if (faz_download){
+    url_base<- sprintf("https://portaldatransparencia.gov.br/download-de-dados/servidores/%s%s_Servidores_SIAPE",ano,mes)
+
+    print(url_base)
+
+
+    download.file(url = url_base, destfile = "data/dado_servidor.zip", mode = "wb")
+
+    unzip(zipfile = "data/dado_servidor.zip",exdir = diretorio_trabalho)
+
+
+  }
+
+
+
+  arquivo_trabalho<- paste0(diretorio_trabalho,"/",ano,mes,"_Cadastro.csv")
+
+  library(readr)
+  janitor::clean_names(read_delim(arquivo_trabalho,
+                                  delim = ";", escape_double = FALSE, locale = locale(encoding = "LATIN1"),
+                                  trim_ws = TRUE))
+
+}
+
+
+busca_dados_remuneracao <- function(ano, mes, faz_download= TRUE){
+
+  diretorio_trabalho<-  paste0("data/sevidor_siape",ano,mes)
+
+  if (faz_download){
+    url_base<- sprintf("https://portaldatransparencia.gov.br/download-de-dados/servidores/%s%s_Servidores_SIAPE",ano,mes)
+
+    print(url_base)
+
+
+    download.file(url = url_base, destfile = "data/dado_servidor.zip", mode = "wb")
+
+    unzip(zipfile = "data/dado_servidor.zip",exdir = diretorio_trabalho)
+
+
+  }
+
+
+
+  arquivo_trabalho<- paste0(diretorio_trabalho,"/",ano,mes,"_Remuneracao.csv")
+
+  library(readr)
+  janitor::clean_names(read_delim(arquivo_trabalho,
+                                  delim = ";", escape_double = FALSE, locale = locale(decimal_mark = ",",
+                                                                                      grouping_mark = ".", encoding = "LATIN1"),
+                                  trim_ws = TRUE))
+}
+
+
+dados_servidores<- busca_dados_cadastro("2023","01", FALSE)
+remuneracao_servidores<- busca_dados_remuneracao("2023","01", FALSE)
+
+remuneracao_cadastro<-
+  remuneracao_servidores %>%
+  inner_join(dados_servidores, by = "id_servidor_portal")
+  
+
+```
+
+## Algumas análises exploratórias
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+num_carreiras<- NROW(unique(remuneracao_cadastro$descricao_cargo))
+
+```
+
+A tabela de cadastro de servidores apresenta uma coluna que informa a descrição do cargo. Essa é a coluna que usaremos para identificar as carreiras existentes no executivo federal. Por esta coluna conseguimos contar `r num_carreiras` cargos distintos. Esse número pode estar bem acima do número correto de carreiras controladas pelos sistemas de gestão de pessoal. Buscaremos então encontrar uma alternativa que possa chegar mais próximo à lista efetiva de carreiras. Abaixo há um início do detalhamento do racional que iremos utilizar.
+
+Começando com análise da distribuição das carreiras por quantidade de servidores associados
+
+```{r}
+remuneracao_cadastro %>%
+  ggplot(aes(x=))+
+  geom_histogram()
+```

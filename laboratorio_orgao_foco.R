@@ -81,7 +81,7 @@ dados_jan_2023 %>%
   ) %>%
   ungroup() %>%
   slice_max(order_by = quantidade, n=12) %>%
-  distinct(org_lotacao, org_exercicio)
+  distinct(org_lotacao, org_exercicio, quantidade)
 
 
 aluvial<-
@@ -94,6 +94,24 @@ dados_jan_2023 %>%
   select(lotacao, exercicio)
 
 
+ordem_y<-
+  dataset_analise %>%
+  filter(deslocamento==1,
+         nome_nivel_hierarquia.x %in% c("Capital Regional B","Capital Regional C", "Centro Sub-Regional B")) %>%
+  group_by(nome_nivel_hierarquia.y) %>%
+  summarise(
+    quantidade = n()
+  ) %>%
+  ungroup() %>%
+  inner_join(
+    de_para_hierarquia %>%
+      rename(nome_nivel_hierarquia.y=nome_nivel_hierarquia,
+             entrada_abreviado = nome_abreviado)) %>%
+  arrange(quantidade) %>%
+  mutate(entrada = entrada_abreviado)
+
+aluvial$entrada <- factor(aluvial$lotacao, levels = unique( max_fornecedor$org_lotacao [order(max_fornecedor$quantidade)]))
+
 library(easyalluvial)
 
 p<-
@@ -103,3 +121,54 @@ p<-
 
 
 parcats::parcats(p, data_input = aluvial,marginal_histograms = FALSE,labelfont = list(size = 15, color = "black"), sortpaths= "backwards")
+
+
+library(networkD3)
+
+# Load energy projection data
+# Load energy projection data
+URL <- paste0(
+  "https://cdn.rawgit.com/christophergandrud/networkD3/",
+  "master/JSONdata/energy.json")
+Energy <- jsonlite::fromJSON(URL)
+
+
+orgaos_nodes<- unique(c(unique(max_fornecedor$org_lotacao), unique(max_fornecedor$org_exercicio)))
+
+df_orgaos_nodes<- tibble(name=orgaos_nodes, index=0:(length(orgaos_nodes)-1))
+
+
+
+orgaos_links<-
+  max_fornecedor %>%
+  select(org_lotacao) %>%
+  inner_join(
+    df_orgaos_nodes,
+    by= join_by(org_lotacao == name)
+  ) %>%
+  rename(source = index) %>%
+  select(source) %>%
+  bind_cols(
+    max_fornecedor %>%
+      select(org_exercicio, quantidade) %>%
+      inner_join(
+        df_orgaos_nodes,
+        by= join_by(org_exercicio == name)
+      ) %>%
+      rename(target = index) %>%
+      select(target, quantidade)
+  )
+
+
+# Plot
+sankeyNetwork(Links = Energy$links, Nodes = Energy$nodes, Source = "source",
+              Target = "target", Value = "value", NodeID = "name",
+              units = "TWh", fontSize = 12, nodeWidth = 30)
+
+
+# Plot
+sankeyNetwork(Links = orgaos_links, Nodes = df_orgaos_nodes, Source = "source",
+              Target = "target", Value = "quantidade", NodeID = "name",
+              units = "", fontSize = 12, nodeWidth = 30)
+
+
