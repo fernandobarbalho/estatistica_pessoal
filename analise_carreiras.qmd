@@ -23,6 +23,7 @@ Como as carreiras do executivo federal podem ser caracterizadas? Que grandes nú
 #| warning: false
 
 library(tidyverse)
+library(kableExtra)
 
 busca_dados_cadastro <- function(ano, mes, faz_download= TRUE){
 
@@ -108,7 +109,51 @@ A tabela de cadastro de servidores apresenta uma coluna que informa a descriçã
 Começando com análise da distribuição das carreiras por quantidade de servidores associados
 
 ```{r}
+#| echo: true
+#| warning: false
+#| message: false
 remuneracao_cadastro %>%
-  ggplot(aes(x=))+
-  geom_histogram()
+  filter(!is.na(classe_cargo)) %>%
+  group_by(descricao_cargo) %>%
+  summarise(
+    quantidade  = n()
+  ) %>%
+  ggplot()+
+  scale_x_log10() +
+  geom_histogram(aes(x=quantidade), color = "white")
+```
+
+Pode-se perceber que há uma grande quantidade de cargos com 50 ou menos servidores. Esses cargos não são candidatos a representar uma carreira. Vamos refinar a análise eliminando todos os cargos que possuem até 49 servidores.
+
+```{r}
+#| echo: true
+#| warning: false
+#| message: false
+remuneracao_cadastro %>%
+  filter(!is.na(classe_cargo)) %>%
+  group_by(descricao_cargo) %>%
+  summarise(
+    quantidade  = n()
+  ) %>%
+  filter(quantidade>=49) %>%
+  ggplot()+
+  scale_x_log10() +
+  geom_histogram(aes(x=quantidade), color = "white")
+```
+
+Uma lista com os 10 cargos mais frequentes
+
+```{r}
+
+remuneracao_cadastro %>%
+  filter(!is.na(classe_cargo)) %>%
+  group_by(descricao_cargo) %>%
+  summarise(
+    quantidade  = n()
+  ) %>%
+  slice_max(order_by = quantidade, n=10) %>%
+  kable()
+  
+
+
 ```
